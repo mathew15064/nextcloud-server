@@ -37,7 +37,7 @@ services:
       - redis
     volumes:
       - ./:/var/www/html
-      - ./nc_data:/var/www/html/data
+      - ../nc_data:/var/www/html/data
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_DB=nextcloud
