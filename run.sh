@@ -22,11 +22,14 @@ else
     echo "[+] Repository directory '${TARGET_DIR}' already exists. Skipping clone."
 fi
 
+# 2. Tạo thư mục nc_data ở thư mục cha trước khi vào TARGET_DIR (khớp với ../nc_data trong compose)
+mkdir -p nc_data
+chmod 777 nc_data
+
 cd "${TARGET_DIR}"
 
-# 2. Ensure data directory exists and configure host permissions[cite: 1]
-mkdir -p nc_data
-chmod -R 777 nc_data config apps 2>/dev/null || chmod 777 nc_data
+# Cấp quyền cho các thư mục con bên trong repo nếu có
+chmod -R 777 config apps 2>/dev/null || true
 
 # 3. Spin up containers in the background using docker compose up -d
 echo "[+] Starting containers with 'docker compose up -d'..."
@@ -48,33 +51,33 @@ docker compose exec app chown -R www-data:www-data /var/www/html/data 2>/dev/nul
 if docker compose exec -u www-data app php occ status 2>/dev/null | grep -q "installed: true"; then
     echo "[+] Applying Redis and media preview optimizations..."
 
-    # Redis Cache & Locking configuration[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set memcache.local --value="\\OC\\Memcache\\APCu"[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set memcache.distributed --value="\\OC\\Memcache\\Redis"[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set memcache.locking --value="\\OC\\Memcache\\Redis"[cite: 1]
+    # Redis Cache & Locking configuration
+    docker compose exec -u www-data app php occ config:system:set memcache.local --value="\\OC\\Memcache\\APCu"
+    docker compose exec -u www-data app php occ config:system:set memcache.distributed --value="\\OC\\Memcache\\Redis"
+    docker compose exec -u www-data app php occ config:system:set memcache.locking --value="\\OC\\Memcache\\Redis"
 
-    docker compose exec -u www-data app php occ config:system:set redis host --value="redis"[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set redis port --value=6379 --type=integer[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set redis password --value="Nguyen@123"[cite: 1]
+    docker compose exec -u www-data app php occ config:system:set redis host --value="redis"
+    docker compose exec -u www-data app php occ config:system:set redis port --value=6379 --type=integer
+    docker compose exec -u www-data app php occ config:system:set redis password --value="Nguyen@123"
 
-    # Preview Providers (MP4 video, HEIC, PNG, JPEG, GIF, BMP, TIFF, WebP)[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set enable_previews --value=true --type=boolean[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set preview_max_x --value=2048 --type=integer[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set preview_max_y --value=2048 --type=integer[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set preview_ffmpeg_path --value="/usr/bin/ffmpeg"[cite: 1]
+    # Preview Providers (MP4 video, HEIC, PNG, JPEG, GIF, BMP, TIFF, WebP)
+    docker compose exec -u www-data app php occ config:system:set enable_previews --value=true --type=boolean
+    docker compose exec -u www-data app php occ config:system:set preview_max_x --value=2048 --type=integer
+    docker compose exec -u www-data app php occ config:system:set preview_max_y --value=2048 --type=integer
+    docker compose exec -u www-data app php occ config:system:set preview_ffmpeg_path --value="/usr/bin/ffmpeg"
 
-    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 0 --value="OC\\Preview\\Movie"[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 1 --value="OC\\Preview\\PNG"[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 2 --value="OC\\Preview\\JPEG"[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 3 --value="OC\\Preview\\GIF"[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 4 --value="OC\\Preview\\BMP"[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 5 --value="OC\\Preview\\HEIC"[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 6 --value="OC\\Preview\\TIFF"[cite: 1]
-    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 7 --value="OC\\Preview\\WebP"[cite: 1]
+    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 0 --value="OC\\Preview\\Movie"
+    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 1 --value="OC\\Preview\\PNG"
+    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 2 --value="OC\\Preview\\JPEG"
+    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 3 --value="OC\\Preview\\GIF"
+    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 4 --value="OC\\Preview\\BMP"
+    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 5 --value="OC\\Preview\\HEIC"
+    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 6 --value="OC\\Preview\\TIFF"
+    docker compose exec -u www-data app php occ config:system:set enabledPreviewProviders 7 --value="OC\\Preview\\WebP"
 
-    # Enable viewer app and switch background jobs to system cron[cite: 1]
+    # Enable viewer app and switch background jobs to system cron
     docker compose exec -u www-data app php occ app:enable viewer 2>/dev/null || true
-    docker compose exec -u www-data app php occ background:cron[cite: 1]
+    docker compose exec -u www-data app php occ background:cron
 fi
 
 echo "=========================================================="
