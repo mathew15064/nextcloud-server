@@ -1,5 +1,6 @@
 services:
   db:
+    container_name: nextcloud-db
     image: postgres:15
     restart: always
     networks:
@@ -12,6 +13,7 @@ services:
       - POSTGRES_PASSWORD=Nguyen@123
 
   redis:
+    container_name: nextcloud-redis
     image: redis:alpine
     restart: always
     command: redis-server --requirepass Nguyen@123
@@ -21,6 +23,7 @@ services:
       - redis_data:/data
 
   app:
+    container_name: nextcloud-app
     build:
       context: .
       dockerfile: Dockerfile
