@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:15
+    restart: always
+    networks:
+      - nextcloud_net
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=Nguyen@123
+
+  redis:
+    image: redis:alpine
+    restart: always
+    command: redis-server --requirepass Nguyen@123
+    networks:
+      - nextcloud_net
+    volumes:
+      - redis_data:/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8088:80"
+    networks:
+      - nextcloud_net
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./:/var/www/html
+      - ../nc_data:/var/www/html/data
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=Nguyen@123
+      - REDIS_HOST=redis
+      - REDIS_HOST_PASSWORD=Nguyen@123
+
+# Khai báo mạng nội bộ
+networks:
+  nextcloud_net:
+    driver: bridge
+
+volumes:
+  db_data:
+  redis_data:
